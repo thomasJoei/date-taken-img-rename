@@ -1,19 +1,13 @@
-
-# coding: utf-8
-
-# In[3]:
-
-
 import os
 import sys
-from PIL import Image
+import PIL.Image
 from PIL.ExifTags import TAGS
 import re
 import mimetypes
 
 def getDateTaken(filename):
     ret = {}
-    image = Image.open(filename)
+    image = PIL.Image.open(filename)
     exifinfo = None
     
     try :
@@ -26,7 +20,7 @@ def getDateTaken(filename):
         for tag, value in exifinfo.items():
             decoded = TAGS.get(tag, tag)
             ret[decoded] = value
-    return ret['DateTimeOriginal']
+    return ret.get('DateTimeOriginal', None)
 
 
 mypath = os.getcwd()
