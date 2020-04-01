@@ -4,83 +4,75 @@ import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
+import javafx.application.Application;
+import javafx.scene.control.Alert;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 
-import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
-public class ImageRenamer {
+public class ImageRenamer extends Application {
 
+    private static final String TITLE = "Image Renamer";
     private static final String DATE_FORMAT = "yyyy-MM-dd_HHmmssS";
     private static final DateFormat formatter = new SimpleDateFormat(DATE_FORMAT);
     private static final String fileNameTemplate = "%s" + File.separator + "%s.%s";
 
     public static void main(String[] args) {
-        //Schedule a job for the event-dispatching thread:
-        //creating and showing this application's GUI.
-        javax.swing.SwingUtilities.invokeLater(new Runnable() {
-
-            public void run() {
-                createAndShowGUI();
-            }
-        });
+        launch(args);
     }
 
-    private static void createAndShowGUI() {
-        // Create and set up the window.
-        final JFrame frame = new JFrame("Images Renamer");
+    @Override
+    public void start(Stage primaryStage) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("JPG & PNG Images", "*.jpg", "*.jpeg", "*.png")
+        );
 
-        // Display the window.
-        frame.setSize(300, 300);
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        List<File> selectedFiles = fileChooser.showOpenMultipleDialog(primaryStage);
 
-        // set flow layout for the frame
-        frame.getContentPane().setLayout(new FlowLayout());
+        long fileRenamedCounter = selectedFiles.stream().filter(ImageRenamer::renameFile).count();
+        long fileNotRenamedCounter = selectedFiles.size() - fileRenamedCounter;
 
-        JButton button = new JButton("Choose images");
-        button.addActionListener(e -> createFileChooser(frame));
-
-        frame.getContentPane().add(button);
+        Alert closingPopup = getClosingPopup(fileRenamedCounter, fileNotRenamedCounter);
+        closingPopup.showAndWait();
     }
 
+    private Alert getClosingPopup(long fileRenamedCounter, long fileNotRenamedCounter) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(TITLE);
+        alert.setHeaderText("Renaming completed !");
+        String alertText = String.format("%d Image(s) have been renamed.", fileRenamedCounter);
 
-    private static void createFileChooser(final JFrame frame) {
-        JFileChooser fileChooser = new JFileChooser();
+        if (fileNotRenamedCounter != 0) {
+            alertText = String.format("%s \n%d Image(s) could not been renamed.", alertText, fileNotRenamedCounter);
+        }
 
-        FileNameExtensionFilter filter = new FileNameExtensionFilter(
-                "JPG & PNG Images", "jpg", "jpeg", "png");
-        fileChooser.setFileFilter(filter);
-        fileChooser.setMultiSelectionEnabled(true);
-
-        // pop up an "Open File" file chooser dialog
-        fileChooser.showOpenDialog(frame);
-
-        File[] files = fileChooser.getSelectedFiles();
-        Arrays.stream(files).forEach(ImageRenamer::renameFile);
+        alert.setContentText(alertText);
+        return alert;
     }
 
-    private static void renameFile(File file) {
+    private static boolean renameFile(File file) {
         try {
             String oldName = file.getName();
             String newAbsoluteFilename = getNewAbsoluteFilename(file);
             File newFile = new File(newAbsoluteFilename);
             if (file.renameTo(newFile)) {
                 System.out.println(String.format("%s => %s", oldName, newFile.getName()));
+                return true;
             } else {
                 System.out.println("File rename failed");
             }
         } catch (IOException | ImageProcessingException ex) {
             System.out.println("Could not get DateTimeOriginal metadata. ");
         }
+        return false;
     }
 
     private static String getNewAbsoluteFilename(File file) throws IOException, ImageProcessingException {
@@ -95,7 +87,8 @@ public class ImageRenamer {
 
     private static Date getDateTaken(File imgFile) throws IOException, ImageProcessingException {
         Metadata metadata = ImageMetadataReader.readMetadata(imgFile);
-        ExifSubIFDDirectory directory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
+        ExifSubIFDDirectory directory = Optional.ofNullable(metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class))
+                .orElseThrow(() -> new ImageProcessingException("No ExifSubIFDDirectory"));
 
         return directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
     }
