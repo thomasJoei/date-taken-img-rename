@@ -5,6 +5,7 @@ import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -35,8 +36,13 @@ public class ImageRenamer extends Application {
                 new FileChooser.ExtensionFilter("JPG & PNG Images", "*.jpg", "*.jpeg", "*.png")
         );
 
-        List<File> selectedFiles = fileChooser.showOpenMultipleDialog(primaryStage);
+        Optional<List<File>> selectedFiles = Optional.ofNullable(fileChooser.showOpenMultipleDialog(primaryStage));
+        selectedFiles.ifPresent(this::processFiles);
 
+        Platform.exit();
+    }
+
+    private void processFiles(List<File> selectedFiles) {
         long fileRenamedCounter = selectedFiles.stream().filter(ImageRenamer::renameFile).count();
         long fileNotRenamedCounter = selectedFiles.size() - fileRenamedCounter;
 
@@ -63,6 +69,7 @@ public class ImageRenamer extends Application {
             String oldName = file.getName();
             String newAbsoluteFilename = getNewAbsoluteFilename(file);
             File newFile = new File(newAbsoluteFilename);
+
             if (file.renameTo(newFile)) {
                 System.out.println(String.format("%s => %s", oldName, newFile.getName()));
                 return true;
