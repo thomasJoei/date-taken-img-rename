@@ -35,10 +35,10 @@ public class ImageRenamer {
 
     private static void createAndShowGUI() {
         // Create and set up the window.
-        final JFrame frame = new JFrame("Images chronological renamer");
+        final JFrame frame = new JFrame("Images Renamer");
 
         // Display the window.
-        frame.setSize(200, 200);
+        frame.setSize(300, 300);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
