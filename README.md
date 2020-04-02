@@ -6,8 +6,14 @@ I personally use this script every time I come back from a travel and got photos
 
 Note : If no metadata "DateTimeOriginal" is available the image won't be renamed, you will have to do it manually.
 
-### Download
-Mac OSX dmg file: [here](https://github.com/thomasJoei/date-taken-img-rename/raw/master/dist/Image%20Renamer-1.0.dmg)
+### Download and Installation
+1. Mac OSX dmg file: [here](https://github.com/thomasJoei/date-taken-img-rename/raw/master/dist/Image%20Renamer-1.0.dmg)
+1. Open the dmg file and place the app inside your Applications folder
+1. Since this not an Apple signed app you will have to authorize it before running it.
+    Open a terminal and run :
+    ```
+    sudo xattr -cr  /Applications/Image\ Renamer.app
+    ```
 
 
 ### Generate jar and package for OSX distribution 
