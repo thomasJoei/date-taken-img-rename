@@ -8,7 +8,7 @@ Note : If no metadata "DateTimeOriginal" is available the image won't be renamed
 
 ### Download and Installation
 #### Mac OSX 
-1. dmg file: [here](https://github.com/thomasJoei/date-taken-img-rename/raw/master/dist/Image%20Renamer-1.0.dmg)
+1. dmg file: [here](https://drive.google.com/open?id=1GYKlg4Mkd4fV_sSfJkTAMgVCfDBlp53y)
 1. Open the dmg file and place the app inside your Applications folder
 1. Since this not an Apple signed app you will have to authorize it before running it.
     Open a terminal and run :
