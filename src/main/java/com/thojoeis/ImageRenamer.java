@@ -4,11 +4,6 @@ import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
-import javafx.application.Application;
-import javafx.application.Platform;
-import javafx.scene.control.Alert;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,6 +12,13 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.scene.control.Alert;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 
 public class ImageRenamer extends Application {
 
@@ -43,10 +45,17 @@ public class ImageRenamer extends Application {
     }
 
     private void processFiles(List<File> selectedFiles) {
-        long fileRenamedCounter = selectedFiles.stream().filter(ImageRenamer::renameFile).count();
-        long fileNotRenamedCounter = selectedFiles.size() - fileRenamedCounter;
+        AtomicInteger fileRenamedCounter = new AtomicInteger(0);
 
-        Alert closingPopup = getClosingPopup(fileRenamedCounter, fileNotRenamedCounter);
+        selectedFiles.forEach(file -> {
+            if (renameFile(file)) {
+                fileRenamedCounter.incrementAndGet();
+            }
+        });
+
+        int fileNotRenamedCounter = selectedFiles.size() - fileRenamedCounter.get();
+
+        Alert closingPopup = getClosingPopup(fileRenamedCounter.get(), fileNotRenamedCounter);
         closingPopup.showAndWait();
     }
 
@@ -67,23 +76,25 @@ public class ImageRenamer extends Application {
     private static boolean renameFile(File file) {
         try {
             String oldName = file.getName();
-            String newAbsoluteFilename = getNewAbsoluteFilename(file);
-            File newFile = new File(newAbsoluteFilename);
+            Optional<Date> imgDateTaken = getDateTaken(file);
+            if (imgDateTaken.isPresent()) {
+                String newAbsoluteFilename = getNewAbsoluteFilename(imgDateTaken.get(), file);
+                File newFile = new File(newAbsoluteFilename);
 
-            if (file.renameTo(newFile)) {
-                System.out.println(String.format("%s => %s", oldName, newFile.getName()));
-                return true;
+                if (file.renameTo(newFile)) {
+                    System.out.printf("%s => %s%n", oldName, newFile.getName());
+                    return true;
+                }
             } else {
-                System.out.println("File rename failed");
+                System.out.println("Could not get DateTimeOriginal metadata.");
             }
-        } catch (IOException | ImageProcessingException ex) {
-            System.out.println("Could not get DateTimeOriginal metadata. ");
+        } catch (Exception ex) {
+            System.out.println("Unexpected exception");
         }
         return false;
     }
 
-    private static String getNewAbsoluteFilename(File file) throws IOException, ImageProcessingException {
-        Date imgDateTaken = getDateTaken(file);
+    private static String getNewAbsoluteFilename(Date imgDateTaken, File file) throws IOException, ImageProcessingException {
         String formattedDate = formatter.format(imgDateTaken);
 
         String extension = getFileExtension(file);
@@ -92,19 +103,18 @@ public class ImageRenamer extends Application {
         return String.format(fileNameTemplate, dirPath, formattedDate, extension);
     }
 
-    private static Date getDateTaken(File imgFile) throws IOException, ImageProcessingException {
+    private static Optional<Date> getDateTaken(File imgFile) throws IOException, ImageProcessingException {
         Metadata metadata = ImageMetadataReader.readMetadata(imgFile);
-        ExifSubIFDDirectory directory = Optional.ofNullable(metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class))
-                .orElseThrow(() -> new ImageProcessingException("No ExifSubIFDDirectory"));
-
-        return directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
+        return Optional.ofNullable(metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class))
+                .map(directory -> directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL));
     }
 
     private static String getFileExtension(File file) {
         String fileName = file.getName();
         if (fileName.lastIndexOf(".") != -1 && fileName.lastIndexOf(".") != 0)
             return fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
-        else return "";
+        else
+            return "";
     }
 
 }
