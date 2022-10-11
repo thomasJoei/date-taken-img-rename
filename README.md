@@ -8,7 +8,7 @@ Note : If no metadata "DateTimeOriginal" is available the image won't be renamed
 
 ### Download and Installation
 #### Mac OSX 
-1. dmg file: [here](https://drive.google.com/open?id=1GYKlg4Mkd4fV_sSfJkTAMgVCfDBlp53y)
+1. dmg file: [here](https://drive.google.com/file/d/19ItiBAXu8U5Odbgnn4X-6n9tu1UBc5PW/view?usp=sharing)
 1. Open the dmg file and place the app inside your Applications folder
 1. Since this not an Apple signed app you will have to authorize it before running it.
     Open a terminal and run :
@@ -17,7 +17,7 @@ Note : If no metadata "DateTimeOriginal" is available the image won't be renamed
     ```
 
 #### Windows 
-1. exe file: [here](https://drive.google.com/open?id=1fC1aQUh85lQQOM8cVViTGzCywjd43yfQ)
+1. exe file: [here](https://drive.google.com/file/d/1MAeyclJbuNsWI41bUY0kVIHViaqnKQVT/view?usp=sharing)
 1. Install by double clicking on the exe file. The installer will create a shortcut on the desktop and in the menu.
 
 
